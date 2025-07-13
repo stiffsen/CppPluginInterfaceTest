@@ -22,6 +22,10 @@ public:
     ~PluginInterface();
 #endif
 
-    DLLAPI const char* getName() DLLAPI_SUFFIX;
+    DLLAPI const char* getName() DLLAPI_SUFFIX;    
+    
+    DLLAPI bool getLinescan(unsigned char*& pLine, unsigned long& ulLength) DLLAPI_SUFFIX;
+
+    DLLAPI void freeLinescan(unsigned char* pLine) DLLAPI_SUFFIX;
 
 };

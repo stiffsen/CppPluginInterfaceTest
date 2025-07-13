@@ -1,15 +1,32 @@
 #include "pch.h"
 #include "../PluginInterface.h"
+#include <algorithm>
 
-#ifdef __cplusplus
-extern "C" {        // export the functions with C linkage
-#endif
 
+extern "C"
 const char* getName() 
 { 
     return "PluginA"; 
 }
 
-#ifdef __cplusplus
-} // extern "C"
-#endif
+
+extern "C"
+bool getLinescan(unsigned char*& pLine, unsigned long& ulLength)
+{
+    ulLength = 10;
+    pLine = new unsigned char[ulLength];
+    memset(pLine, 0, static_cast<size_t>(ulLength));
+
+    // Test: Dummy values
+    static int uCounter = 0;
+    pLine[uCounter++] = 1;
+
+    return true;
+}
+
+
+extern "C"
+void freeLinescan(unsigned char* pLine)
+{
+    delete[] pLine;
+}
