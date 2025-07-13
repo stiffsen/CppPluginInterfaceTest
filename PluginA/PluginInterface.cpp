@@ -2,12 +2,15 @@
 #include "../PluginInterface.h"
 #include <algorithm>
 
+// Plugin-side implementation of PluginInterface
+
 
 extern "C"
 const char* getName() 
 { 
     return "PluginA"; 
 }
+
 
 
 extern "C"
@@ -24,9 +27,65 @@ bool getLinescan(unsigned char*& pLine, unsigned long& ulLength)
     return true;
 }
 
-
 extern "C"
 void freeLinescan(unsigned char* pLine)
 {
     delete[] pLine;
+}
+
+
+
+
+#include <vector>
+#include <mutex>
+#include <memory>
+#include "ExampleClassPlugin.h"
+
+std::mutex mtxExampleClass;
+std::vector<std::unique_ptr<ExampleClassPlugin>> vecExampleClass;
+
+extern "C"
+CLASSHANDLE ExampleClass_create(const char* sName)
+{
+    CLASSHANDLE ret = -1;
+    {
+        std::scoped_lock lock{ mtxExampleClass };
+        vecExampleClass.push_back(std::make_unique<ExampleClassPlugin>(sName));
+        ret = static_cast<long>(vecExampleClass.size() - 1);
+    }
+    return ret;
+}
+
+extern "C"
+bool ExampleClass_free(CLASSHANDLE Index)
+{
+    if (Index < 0)
+        return false;
+
+    std::scoped_lock lock{ mtxExampleClass };
+
+    const size_t uIndex = static_cast<size_t>(Index);
+    if (uIndex >= vecExampleClass.size())
+        return false;
+
+    vecExampleClass[uIndex].reset();
+    return true;
+}
+
+extern "C"
+bool ExampleClass_getName(CLASSHANDLE Index, const char*& sName)
+{
+    if (Index < 0)
+        return false;
+    const size_t uIndex = static_cast<size_t>(Index);
+
+    std::scoped_lock lock{ mtxExampleClass };
+    if (uIndex >= vecExampleClass.size())
+        return false;
+    const auto& pInstance = vecExampleClass[uIndex];
+    if (pInstance == nullptr)
+        return false;
+
+    sName = pInstance->getName().data();
+    return true;
 }

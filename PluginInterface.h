@@ -22,10 +22,20 @@ public:
     ~PluginInterface();
 #endif
 
-    DLLAPI const char* getName() DLLAPI_SUFFIX;    
-    
-    DLLAPI bool getLinescan(unsigned char*& pLine, unsigned long& ulLength) DLLAPI_SUFFIX;
 
+    // Example for a simple plugin-function
+    DLLAPI const char* getName() DLLAPI_SUFFIX;    
+
+    
+    // Function pair that demonstrates allocating and deallocating a buffer
+    DLLAPI bool getLinescan(unsigned char*& pLine, unsigned long& ulLength) DLLAPI_SUFFIX;
     DLLAPI void freeLinescan(unsigned char* pLine) DLLAPI_SUFFIX;
 
+
+    // Example for a class wrapped by a c-interface
+    // -> Class is instanciated inside the plugin and we only get a handle to that class. All interaction with that class is performed through that handle.
+    typedef long CLASSHANDLE;
+    DLLAPI CLASSHANDLE ExampleClass_create(const char* sName) DLLAPI_SUFFIX;
+    DLLAPI bool ExampleClass_free(CLASSHANDLE Index) DLLAPI_SUFFIX;
+    DLLAPI bool ExampleClass_getName(CLASSHANDLE Index, const char*& sName) DLLAPI_SUFFIX;
 };
