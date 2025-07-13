@@ -10,8 +10,6 @@ int main()
         auto pPlugin = PluginCppWrapper::create("./Plugins/PluginA.dll");
         if (pPlugin == nullptr)
             return -1;
-
-        std::cout << pPlugin->getName() << '\n';
     }
 
     return 0;

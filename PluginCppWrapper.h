@@ -5,15 +5,16 @@
 #include <filesystem>
 #include <string>
 
+
 class PluginCppWrapper
 {
 private:
-    PluginCppWrapper(const char* sDllPath);
+    PluginCppWrapper(const std::filesystem::path& DllPath);
     std::shared_ptr<PluginInterface> m_pPluginInterface;
 public:
     ~PluginCppWrapper();
 
-    static std::unique_ptr<PluginCppWrapper> create(const char* sDllPath);
+    static std::unique_ptr<PluginCppWrapper> create(const std::filesystem::path& DllPath);
 
     std::string_view getName() const;
 };
