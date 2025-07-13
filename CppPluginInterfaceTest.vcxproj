@@ -147,7 +147,7 @@
     <ClCompile Include="PluginLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Interface.h" />
+    <ClInclude Include="PluginInterface.h" />
     <ClInclude Include="PluginLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

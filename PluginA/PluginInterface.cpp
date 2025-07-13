@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "../Interface.h"
+#include "../PluginInterface.h"
 
 #ifdef __cplusplus
 extern "C" {        // export the functions with C linkage

@@ -1,6 +1,6 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
-#include "../Interface.h"
+#include "../PluginInterface.h"
 
 extern "C" DLLAPI BOOL APIENTRY DllMain(HINSTANCE inst, DWORD reason, LPVOID reserved) 
 {
