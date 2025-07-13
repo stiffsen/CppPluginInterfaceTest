@@ -2,12 +2,17 @@
 //
 
 #include <iostream>
-#include "PluginInterface.h"
+#include "PluginCppWrapper.h"
 
 int main()
 {
-    PluginInterface Plugin("./Plugins/PluginA.dll");
-    std::cout << Plugin.getName() << '\n';
+    {
+        auto pPlugin = PluginCppWrapper::create("./Plugins/PluginA.dll");
+        if (pPlugin == nullptr)
+            return -1;
+
+        std::cout << pPlugin->getName() << '\n';
+    }
 
     return 0;
 }

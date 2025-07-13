@@ -3,6 +3,7 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include "PluginCppWrapper.h"
 
 
 template <class T>

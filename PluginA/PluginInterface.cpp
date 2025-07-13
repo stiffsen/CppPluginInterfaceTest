@@ -5,7 +5,10 @@
 extern "C" {        // export the functions with C linkage
 #endif
 
-const char* getName() { return "PluginA"; }
+const char* getName() 
+{ 
+    return "PluginA"; 
+}
 
 #ifdef __cplusplus
 } // extern "C"
