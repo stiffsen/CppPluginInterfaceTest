@@ -1,4 +1,6 @@
-A simple demonstration of a C++ Plugin-System using a C-Interface for better ABI and to avoid name-mangling.
+# Description
+
+A simple demonstration of a C++ Plugin-System for Windows using a C-Interface for better ABI and to avoid name-mangling. 
 
 ```mermaid
 graph LR
@@ -12,3 +14,4 @@ graph LR
   end
   B <--> C
 ```
+
