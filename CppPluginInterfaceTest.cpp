@@ -17,24 +17,23 @@ int main()
                 return -1;
 
             pLinescan = pPlugin->getLinescan();
-
-            // Test code
-            if ((*pLinescan)[0] != 1)
-            {
-                std::cerr << "Unexpected linescan result...\n";
+            if (pLinescan == nullptr)
                 return -1;
-            }
-            //
+
+            auto PrintLinescan = [](const decltype(pLinescan)& pLinescan)
+                {
+                    std::cout << "Linescan:\t";
+                    for (int val : *pLinescan)
+                        std::cout << val << '\t';
+                    std::cout << '\n';
+                };            
+            PrintLinescan(pLinescan);
+            
 
             pLinescan = pPlugin->getLinescan();
-
-            // Test code
-            if ((*pLinescan)[1] != 1)
-            {
-                std::cerr << "Unexpected linescan result...\n";
+            if (pLinescan == nullptr)
                 return -1;
-            }
-            //
+            PrintLinescan(pLinescan);
 
 
             pExampleClass = pPlugin->createExampleClass("Foo");

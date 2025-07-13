@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "../PluginInterface.h"
 #include <algorithm>
+#include <iostream>
 
 // Plugin-side implementation of PluginInterface
 
@@ -24,6 +25,8 @@ bool getLinescan(unsigned char*& pLine, unsigned long& ulLength)
     static int uCounter = 0;
     pLine[uCounter++] = 1;
 
+    std::cout << "Plugin: Allocated linescan\n";
+
     return true;
 }
 
@@ -31,6 +34,7 @@ extern "C"
 void freeLinescan(unsigned char* pLine)
 {
     delete[] pLine;
+    std::cout << "Plugin: Freed linescan\n";
 }
 
 
@@ -53,6 +57,7 @@ CLASSHANDLE ExampleClass_create(const char* sName)
         vecExampleClass.push_back(std::make_unique<ExampleClassPlugin>(sName));
         ret = static_cast<long>(vecExampleClass.size() - 1);
     }
+    std::cout << "Plugin: Istanciated ExampleClass\n";
     return ret;
 }
 
@@ -69,6 +74,8 @@ bool ExampleClass_free(CLASSHANDLE Index)
         return false;
 
     vecExampleClass[uIndex].reset();
+
+    std::cout << "Plugin: Freed ExampleClass\n";
     return true;
 }
 
