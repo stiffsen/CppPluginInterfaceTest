@@ -18,7 +18,7 @@ extern "C"
 #else
 class PluginInterface
 {
-    struct MEMBERS;
+    struct MEMBERS; // basically PIMPL-idiom, but only holds function pointers and DLL handle
     MEMBERS* m_pMembers{nullptr};
 public:
     PluginInterface(const char* sPath);
