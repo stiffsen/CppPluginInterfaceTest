@@ -31,6 +31,7 @@ public:
     
 
     // CppWrappr variant of function pair example that demonstrates allocating and deallocating a buffer
+    // Returned LinescanPtr holds a reference to PluginInterface to ensure that the data can be freed again.
     using LinescanPtr = std::unique_ptr<std::span<unsigned char>, LinescanDeleter>;
     LinescanPtr getLinescan() const;
 
@@ -39,7 +40,7 @@ public:
     // CppWrapper variant of ExampleClassPlugin
     class ExampleClass
     {
-        std::shared_ptr<PluginInterface> m_pPluginInterface;
+        std::shared_ptr<PluginInterface> m_pPluginInterface; // Ensure that the class can be freed again
         PluginInterface::CLASSHANDLE     m_ClassHandle;
     public:
 

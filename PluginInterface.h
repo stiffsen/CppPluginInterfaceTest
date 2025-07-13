@@ -8,6 +8,9 @@
 #define DLLAPI_SUFFIX const
 #endif
 
+// This file is shared by Plugin and User
+// - Plugin: Only C-Functions
+// - User: A class managing the lifetime of the loaded DLL and providing access to all plugin functions
 
 #ifdef BUILD_DLL
 extern "C" 
