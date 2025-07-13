@@ -144,11 +144,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CppPluginInterfaceTest.cpp" />
-    <ClCompile Include="PluginLoader.cpp" />
+    <ClCompile Include="PluginInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PluginInterface.h" />
-    <ClInclude Include="PluginLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

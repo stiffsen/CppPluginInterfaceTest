@@ -2,11 +2,11 @@
 //
 
 #include <iostream>
-#include "PluginLoader.h"
+#include "PluginInterface.h"
 
 int main()
 {
-    PluginLoader Plugin("./Plugins/PluginA.dll");
+    PluginInterface Plugin("./Plugins/PluginA.dll");
     std::cout << Plugin.getName() << '\n';
 
     return 0;

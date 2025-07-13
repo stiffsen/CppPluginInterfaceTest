@@ -2,15 +2,26 @@
 
 #ifdef BUILD_DLL
 #define DLLAPI __declspec(dllexport)
+#define DLLAPI_SUFFIX
 #else
-#define DLLAPI virtual
+#define DLLAPI
+#define DLLAPI_SUFFIX const
 #endif
 
-// TODO: Merge plugin loader into Interface.h so that we don't have to declare these methods multiple times
 
+#ifdef BUILD_DLL
 extern "C" 
 {
+#else
+class PluginInterface
+{
+    struct MEMBERS;
+    MEMBERS* m_pMembers{nullptr};
+public:
+    PluginInterface(const char* sPath);
+    ~PluginInterface();
+#endif
 
-    DLLAPI const char* getName();
+    DLLAPI const char* getName() DLLAPI_SUFFIX;
 
-}
+};
