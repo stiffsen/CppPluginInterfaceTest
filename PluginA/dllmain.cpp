@@ -1,19 +1,26 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
+#include "../Interface.h"
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
+extern "C" DLLAPI BOOL APIENTRY DllMain(HINSTANCE inst, DWORD reason, LPVOID reserved) 
 {
-    switch (ul_reason_for_call)
-    {
+    switch (reason) {
     case DLL_PROCESS_ATTACH:
-    case DLL_THREAD_ATTACH:
-    case DLL_THREAD_DETACH:
+        // attach to process
+        // return FALSE to fail DLL load
+        break;
+
     case DLL_PROCESS_DETACH:
+        // detach from process
+        break;
+
+    case DLL_THREAD_ATTACH:
+        // attach to thread
+        break;
+
+    case DLL_THREAD_DETACH:
+        // detach from thread
         break;
     }
-    return TRUE;
+    return TRUE; // succesful
 }
-

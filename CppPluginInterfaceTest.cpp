@@ -2,9 +2,13 @@
 //
 
 #include <iostream>
+#include "PluginLoader.h"
 
 int main()
 {
-    std::cout << "Hello World!\n";
+    PluginLoader Plugin("./Plugins/PluginA.dll");
+    std::cout << Plugin.getName() << '\n';
+
+    return 0;
 }
 
