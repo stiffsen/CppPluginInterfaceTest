@@ -1,98 +1,88 @@
 #include "pch.h"
 #include "../PluginInterface.h"
-#include <algorithm>
 #include <iostream>
 
 // Plugin-side implementation of PluginInterface
 
 
+class ExampleClassImpl : public PluginInterface::ExampleClass
+{
+	std::string m_sName;
+
+public:
+	ExampleClassImpl(std::string_view sName)
+		: m_sName(sName)
+	{
+		std::cout << "Plugin: Created ExampleClass with name: " << m_sName << '\n';
+	}
+
+	~ExampleClassImpl()
+	{
+		std::cout << "Plugin: Destroying ExampleClass with name: " << m_sName << '\n';
+	}
+
+	const std::string& getName() const override
+	{
+		return m_sName;
+	}
+};
+
+
+
+const std::string g_sPluginName{ "PluginA" };
+
+class PluginInterfaceImpl : public PluginInterface
+{
+public:
+
+	const std::string& getName() override
+	{
+		return g_sPluginName;
+	}
+
+
+	LinescanPtr getLinescan() const override
+	{
+		size_t uLength = 10;
+		unsigned char* pLine = new unsigned char[uLength];
+		memset(pLine, 0, static_cast<size_t>(uLength));
+
+		// Test: Dummy values
+		{
+			static int uCounter = 0;
+			pLine[uCounter] = 1;
+			uCounter = (uCounter + 1) % uLength; // Wrap around to avoid out-of-bounds access
+		}
+
+		std::cout << "Plugin: Allocated linescan\n";
+
+		return LinescanPtr(new std::span<unsigned char>(pLine, uLength), 
+			[](std::span<unsigned char>* pSpan) {
+				delete[] pSpan->data();
+				delete pSpan;
+				std::cout << "Plugin: Freed linescan\n"; 
+			});
+	}
+
+
+	PluginInterface::ExampleClassPtr PluginInterface::createExampleClass(std::string_view sName) const
+	{
+		return std::make_unique<ExampleClassImpl>(sName);
+	}
+};
+
+
 extern "C"
-const char* getName() 
+PluginInterface* createPluginInterface() 
 { 
-    return "PluginA"; 
+	std::cout << "Plugin: Creating PluginInterface\n";
+    return new PluginInterfaceImpl(); 
 }
 
 
-
 extern "C"
-bool getLinescan(unsigned char*& pLine, unsigned long& ulLength)
+void releasePluginInterface(PluginInterface* pPluginInterface)
 {
-    ulLength = 10;
-    pLine = new unsigned char[ulLength];
-    memset(pLine, 0, static_cast<size_t>(ulLength));
-
-    // Test: Dummy values
-    static int uCounter = 0;
-    pLine[uCounter++] = 1;
-
-    std::cout << "Plugin: Allocated linescan\n";
-
-    return true;
-}
-
-extern "C"
-void freeLinescan(unsigned char* pLine)
-{
-    delete[] pLine;
-    std::cout << "Plugin: Freed linescan\n";
-}
-
-
-
-
-#include <vector>
-#include <mutex>
-#include <memory>
-#include "ExampleClassPlugin.h"
-
-std::mutex mtxExampleClass;
-std::vector<std::unique_ptr<ExampleClassPlugin>> vecExampleClass;
-
-extern "C"
-CLASSHANDLE ExampleClass_create(const char* sName)
-{
-    CLASSHANDLE ret = -1;
-    {
-        std::scoped_lock lock{ mtxExampleClass };
-        vecExampleClass.push_back(std::make_unique<ExampleClassPlugin>(sName));
-        ret = static_cast<long>(vecExampleClass.size() - 1);
-    }
-    std::cout << "Plugin: Istanciated ExampleClass\n";
-    return ret;
-}
-
-extern "C"
-bool ExampleClass_free(CLASSHANDLE Index)
-{
-    if (Index < 0)
-        return false;
-
-    std::scoped_lock lock{ mtxExampleClass };
-
-    const size_t uIndex = static_cast<size_t>(Index);
-    if (uIndex >= vecExampleClass.size())
-        return false;
-
-    vecExampleClass[uIndex].reset();
-
-    std::cout << "Plugin: Freed ExampleClass\n";
-    return true;
-}
-
-extern "C"
-bool ExampleClass_getName(CLASSHANDLE Index, const char*& sName)
-{
-    if (Index < 0)
-        return false;
-    const size_t uIndex = static_cast<size_t>(Index);
-
-    std::scoped_lock lock{ mtxExampleClass };
-    if (uIndex >= vecExampleClass.size())
-        return false;
-    const auto& pInstance = vecExampleClass[uIndex];
-    if (pInstance == nullptr)
-        return false;
-
-    sName = pInstance->getName().data();
-    return true;
+	std::cout << "Plugin: Releasing PluginInterface\n";
+	delete pPluginInterface;
 }

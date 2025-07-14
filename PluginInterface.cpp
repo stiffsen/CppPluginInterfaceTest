@@ -3,118 +3,75 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
-#include "PluginCppWrapper.h"
+#include <mutex>
 
 
 // User-side implementation of PluginInterface
 
-
-template <class T>
-T GetFunctionFromDll(HINSTANCE dll, const char* sName, const char* sDllPath)
+class LibraryLoader
 {
-    T Func = (T)GetProcAddress(dll, sName);
-    if (Func == nullptr)
-        throw std::runtime_error(std::string("Could not find function \"") + sName + "\" in Dll: " + sDllPath);
-    return Func;
-}
+	const HINSTANCE   m_DllHandle;
+	const std::string m_sFilename;
 
-struct PluginInterface::MEMBERS
-{
-    HINSTANCE DllHandle;
+public:
+	LibraryLoader(const std::filesystem::path& DllPath)
+		: m_DllHandle(LoadLibrary(DllPath.c_str()))
+		, m_sFilename(DllPath.filename().string())
+	{
+		if (!m_DllHandle)
+			throw std::runtime_error(std::string("Failed to load dll: ") + m_sFilename);
+		std::cout << "Successfully loaded " << m_sFilename << ".\n";
+	}
 
-    typedef const char* (__cdecl* GetNameProc)(void);
-    GetNameProc FuncGetName;
+	~LibraryLoader()
+	{
+		std::cout << "Unloading " << m_sFilename << ".\n";
+		FreeLibrary(m_DllHandle);
+	}
 
-    typedef bool(__cdecl* GetLinescanProc)(unsigned char*&, unsigned long&);
-    GetLinescanProc FuncGetLinescan;
-
-    typedef void(__cdecl* FreeLinescanProc)(unsigned char*);
-    FreeLinescanProc FuncFreeLinescan;
-
-    typedef CLASSHANDLE(__cdecl* ExampleClass_createProc)(const char*);
-    ExampleClass_createProc FuncExampleClass_create;
-
-    typedef bool(__cdecl* ExampleClass_freeProc)(CLASSHANDLE);
-    ExampleClass_freeProc FuncExampleClass_free;
-
-    typedef bool(__cdecl* ExampleClass_getNameProc)(CLASSHANDLE, const char*&);
-    ExampleClass_getNameProc FuncExampleClass_getName;
+	template <class T>
+	T GetFunctionFromDll(const char* sName)
+	{
+		T Func = (T)GetProcAddress(m_DllHandle, sName);
+		if (Func == nullptr)
+			throw std::runtime_error(std::string("Could not find function \"") + sName + "\" in Dll: " + m_sFilename);
+		return Func;
+	}
 };
 
-PluginInterface::PluginInterface(const char* sDllPath)
-    : m_pMembers(new PluginInterface::MEMBERS)
+std::mutex                   g_LibraryLoaderMutex;
+std::weak_ptr<LibraryLoader> g_LibraryLoader;
+
+
+
+PluginInterfacePtr createPluginInterface(const std::filesystem::path& DllPath)
 {
-    m_pMembers->DllHandle = LoadLibraryA(sDllPath);
-    if (!m_pMembers->DllHandle)
-        throw std::runtime_error(std::string("Failed to load dll: ") + sDllPath);
+	std::shared_ptr<LibraryLoader> pLibrary;
+	{ 
+		std::scoped_lock lock{g_LibraryLoaderMutex};
+		pLibrary = g_LibraryLoader.lock();
+		if (!pLibrary)
+			g_LibraryLoader = pLibrary = std::make_shared<LibraryLoader>(DllPath);
+	}
 
 
-    m_pMembers->FuncGetName = GetFunctionFromDll<MEMBERS::GetNameProc>(
-        m_pMembers->DllHandle, "getName", sDllPath);
+	typedef PluginInterface* (__cdecl* createPluginInterfaceProc)(void);
+	createPluginInterfaceProc FuncCreate = 
+		pLibrary->GetFunctionFromDll<createPluginInterfaceProc>("createPluginInterface");
+
+	typedef void(__cdecl* releasePluginInterfaceProc)(PluginInterface*);
+	releasePluginInterfaceProc FuncRelease = 
+		pLibrary->GetFunctionFromDll<releasePluginInterfaceProc>("releasePluginInterface");
 
 
+	PluginInterfacePtr pPluginInterface(FuncCreate(), 
+		[pLibrary, FuncRelease](PluginInterface* pPluginInterface) // We bind pLibrary to the lambda to ensure it is not destroyed before the PluginInterface
+		{
+			std::cout << "Releasing PluginInterface: " << pPluginInterface->getName() << ".\n";
+			FuncRelease(pPluginInterface);
+		});
 
-    m_pMembers->FuncGetLinescan = GetFunctionFromDll<MEMBERS::GetLinescanProc>(
-        m_pMembers->DllHandle, "getLinescan", sDllPath);
+	std::cout << "Created PluginInterface: " << pPluginInterface->getName() << ".\n";
 
-    m_pMembers->FuncFreeLinescan = GetFunctionFromDll<MEMBERS::FreeLinescanProc>(
-        m_pMembers->DllHandle, "freeLinescan", sDllPath);
-
-
-
-    m_pMembers->FuncExampleClass_create = GetFunctionFromDll<MEMBERS::ExampleClass_createProc>(
-        m_pMembers->DllHandle, "ExampleClass_create", sDllPath);
-
-    m_pMembers->FuncExampleClass_free = GetFunctionFromDll<MEMBERS::ExampleClass_freeProc>(
-        m_pMembers->DllHandle, "ExampleClass_free", sDllPath);
-
-    m_pMembers->FuncExampleClass_getName = GetFunctionFromDll<MEMBERS::ExampleClass_getNameProc>(
-        m_pMembers->DllHandle, "ExampleClass_getName", sDllPath);
-
-    // Test
-    std::cout << "Successfully loaded " << sDllPath << ". Plugin name: " << getName() << ".\n";
-}
-
-PluginInterface::~PluginInterface()
-{
-    std::cout << "Unloading plugin: " << getName() << ".\n";
-
-    FreeLibrary(m_pMembers->DllHandle);
-    delete m_pMembers;
-}
-
-
-
-const char* PluginInterface::getName() const
-{
-    return m_pMembers->FuncGetName();
-}
-
-
-
-bool PluginInterface::getLinescan(unsigned char*& pLine, unsigned long& ulLength) const
-{
-    return m_pMembers->FuncGetLinescan(pLine, ulLength);
-}
-
-void PluginInterface::freeLinescan(unsigned char* pLine) const
-{
-    m_pMembers->FuncFreeLinescan(pLine);
-}
-
-
-
-PluginInterface::CLASSHANDLE PluginInterface::ExampleClass_create(const char* sName) const
-{
-    return m_pMembers->FuncExampleClass_create(sName);
-}
-
-bool PluginInterface::ExampleClass_free(CLASSHANDLE Index) const
-{
-    return m_pMembers->FuncExampleClass_free(Index);
-}
-
-bool PluginInterface::ExampleClass_getName(CLASSHANDLE Index, const char*& sName) const
-{
-    return m_pMembers->FuncExampleClass_getName(Index, sName);
+	return pPluginInterface;
 }
