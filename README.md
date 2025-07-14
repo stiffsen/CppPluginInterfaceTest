@@ -17,4 +17,4 @@ graph LR
 
 # Reference
 
-This small sample project is baed on [this](https://cplusplus.com/articles/48TbqMoL/) article
+This small sample project is based on [this](https://cplusplus.com/articles/48TbqMoL/) article.
