@@ -39,21 +39,10 @@ public:
 	}
 };
 
-std::mutex                   g_LibraryLoaderMutex;
-std::weak_ptr<LibraryLoader> g_LibraryLoader;
-
-
 
 PluginInterfacePtr createPluginInterface(const std::filesystem::path& DllPath)
 {
-	std::shared_ptr<LibraryLoader> pLibrary;
-	{ 
-		std::scoped_lock lock{g_LibraryLoaderMutex};
-		pLibrary = g_LibraryLoader.lock();
-		if (!pLibrary)
-			g_LibraryLoader = pLibrary = std::make_shared<LibraryLoader>(DllPath);
-	}
-
+	std::shared_ptr<LibraryLoader> pLibrary = std::make_shared<LibraryLoader>(DllPath);
 
 	typedef PluginInterface* (__cdecl* createPluginInterfaceProc)(void);
 	createPluginInterfaceProc FuncCreate = 
